@@ -45,8 +45,8 @@ cd KasFlow-api
 npm install
 ```
 # 3. Setup environment variables
-```---Create Database terlebih dahulu!---```
-Buat file .env dan isi seperti berikut:
+Buat file .env dan isi seperti berikut: <br />
+Create Database terlebih dahulu!
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DATABASE_NAME"
 PORT=3000
