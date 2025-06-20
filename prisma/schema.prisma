@@ -14,6 +14,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===================================================================
+// MODEL DATABASE
+// ===================================================================
+
+// Model untuk Pengguna (User)
 model User {
   id         Int      @id @default(autoincrement())
   username   String   @unique
@@ -22,6 +27,58 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  Transaction Transaction[]
+  Account     Account[]
+
   @@map("users")
 }
 
+model Account {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  name            String
+  type            AccountType
+  initial_balance Decimal
+  balance         Decimal
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+enum AccountType {
+  Bank
+  e_wallet
+  cash
+}
+
+// Model untuk Transaksi (Pemasukan & Pengeluaran)
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  categoryId  Int? // Foreign Key ke Category (opsional)
+  amount      Decimal
+  type        TransactionType
+  description String? // Deskripsi bersifat opsional
+  date        DateTime // Tanggal transaksi terjadi
+
+  // Relasi: Setiap transaksi HARUS milik satu User.
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Transaction Transaction[]
+
+  @@map("categories")
+}
