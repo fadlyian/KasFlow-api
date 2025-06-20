@@ -35,28 +35,28 @@ Project ini merupakan back-end API yang dibangun dengan stack modern: **Node.js*
 ```
 
 ## ⚙️ Cara Instalasi
-# 1. Clone Project
+### 1. Clone Project
 ```bash
 git clone https://github.com/fadlyian/KasFlow-api.git
 cd KasFlow-api
 ```
-# 2. Install Dependencies
+### 2. Install Dependencies
 ```bash
 npm install
 ```
-# 3. Setup environment variables
+### 3. Setup environment variables
 Buat file .env dan isi seperti berikut: <br />
 Create Database terlebih dahulu!
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DATABASE_NAME"
 PORT=3000
 ```
-# 4. Generate Prisma Client dan migrasi database:
+### 4. Generate Prisma Client dan migrasi database:
 ```bash
 npx prisma generate
 npx prisma migrate dev --name init
 ```
-# 5. Jalankan server:
+### 5. Jalankan server:
 ```bash
 npm run dev
 ```
