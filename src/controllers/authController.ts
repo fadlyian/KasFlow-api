@@ -13,32 +13,47 @@ const register = async (req: Request, res: Response) => {
         password
     } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
-        where: { email: email }
-    })
+    try {
+        const existingUser = await prisma.user.findUnique({
+            where: { 
+                username: username,
+                email: email
+             }
+        })
 
-    if (existingUser) {
-        res.status(400).json({ message: 'User already exists' });
-        return;
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await prisma.user.create({
-        data: {
-            username: username,
-            email: email,
-            password: hashedPassword
+        if (existingUser) {
+            res.status(400).json({
+                status: 'failed',
+                message: 'Email atau username sudah terdaftar'
+            });
+            return;
         }
-    });
 
-    res.status(201).json({
-        message: "User berhasil dibuat",
-        data: {
-            username: newUser.username,
-            email: newUser.email,
-        },
-    })
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: {
+                username: username,
+                email: email,
+                password: hashedPassword
+            }
+        });
+
+        res.status(201).json({
+            message: "User berhasil dibuat",
+            data: {
+                username: newUser.username,
+                email: newUser.email,
+            },
+        })
+    } catch (error) {
+        console.log('error: ', error);
+        res.status(500).json({
+            status: 'failed',
+            message: "Terjadi kesalaha pada server",
+            data: null
+        })
+    }
 };
 
 // Login Controller
