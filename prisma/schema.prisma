@@ -27,25 +27,25 @@ model User {
   updated_at DateTime @updatedAt
 
   Transaction Transaction[]
-  Account     Account[]
+  Pocket     Pocket[]
 
   @@map("users")
 }
 
-model Account {
+model Pocket {
   id              Int         @id @default(autoincrement())
   userId          Int
   name            String
-  type            AccountType
+  type            PocketType
   initial_balance Decimal
   balance         Decimal
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("accounts")
+  @@map("pockets")
 }
 
-enum AccountType {
+enum PocketType {
   Bank
   e_wallet
   cash
