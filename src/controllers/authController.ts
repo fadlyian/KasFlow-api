@@ -81,8 +81,15 @@ const login = async (req: Request, res: Response) => {
     );
 
     res.status(200).json({
+        statu: true,
         message: "Login berhasil",
-        token
+        data: {
+            token: token,
+            user: {
+                username: user?.username,
+                email: user?.email
+            },
+        }
     });
 
 };
