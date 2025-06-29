@@ -14,11 +14,13 @@ const register = async (req: Request, res: Response) => {
     } = req.body;
 
     try {
-        const existingUser = await prisma.user.findUnique({
-            where: { 
-                username: username,
-                email: email
-             }
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { username: username },
+                    { email: email },
+                ]
+            }
         })
 
         if (existingUser) {
@@ -50,6 +52,7 @@ const register = async (req: Request, res: Response) => {
         console.log('error: ', error);
         res.status(500).json({
             status: 'failed',
+            trace: error,
             message: "Terjadi kesalaha pada server",
             data: null
         })
