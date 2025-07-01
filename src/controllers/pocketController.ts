@@ -1,14 +1,30 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { type } from '../../generated/prisma/runtime/index-browser.d';
 
 const prisma = new PrismaClient();
 
 // GET ALL pocket
 const index = async (req: Request, res: Response) => {
+    const user = req.user;
+    const pockets = await prisma.pocket.findMany({
+        where: {
+            userId: Number(user?.userId)
+        },
+        select: {
+            id: true,
+            name: true,
+            balance: true,
+            type: true,
+        },
+        orderBy: {
+            id: 'desc'
+        }
+    })
 
     res.status(200).json({
-        message: "halodek",
+        status: true,
+        message: "Daftar pocket berhasil diambil",
+        data: pockets
     });
 }
 
@@ -17,10 +33,6 @@ const createPocket = async (req: Request, res: Response) => {
     try {
         const { name, type, balance } = req.body
         const user = req.user;
-
-        // res.json({
-        //     user: req?.user
-        // });
 
         const existingPocket = await prisma.pocket.findFirst({ where: { name: name } });
 
