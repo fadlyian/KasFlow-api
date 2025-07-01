@@ -44,7 +44,8 @@ model Pocket {
   updated_at DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
+  Transaction Transaction[]
   @@map("pockets")
 }
 
@@ -57,6 +58,7 @@ enum PocketType {
 // Model untuk Transaksi (Pemasukan & Pengeluaran)
 model Transaction {
   id          Int             @id @default(autoincrement())
+  pocketId    Int
   userId      Int
   categoryId  Int? // Foreign Key ke Category (opsional)
   amount      Decimal
@@ -66,6 +68,7 @@ model Transaction {
 
   // Relasi: Setiap transaksi HARUS milik satu User.
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pocket   Pocket    @relation(fields: [pocketId], references: [id])
   category Category? @relation(fields: [categoryId], references: [id])
 
   @@map("transactions")
