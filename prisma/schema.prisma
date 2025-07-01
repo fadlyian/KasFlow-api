@@ -37,7 +37,6 @@ model Pocket {
   userId          Int
   name            String
   type            PocketType
-  initial_balance Decimal
   balance         Decimal
 
   created_at DateTime @default(now())
