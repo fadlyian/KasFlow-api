@@ -33,18 +33,19 @@ model User {
 }
 
 model Pocket {
-  id              Int        @id @default(autoincrement())
-  userId          Int
-  name            String
-  type            PocketType
-  balance         Decimal
+  id      Int        @id @default(autoincrement())
+  userId  Int
+  name    String
+  type    PocketType
+  balance Decimal    @db.Decimal(15, 2)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   Transaction Transaction[]
+
   @@map("pockets")
 }
 
