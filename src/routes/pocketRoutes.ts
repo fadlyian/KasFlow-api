@@ -1,14 +1,16 @@
 import { Router } from "express";
-import { createPocket, index } from "../controllers/pocketController";
-import bodyParser from "body-parser";
-
+import { createPocket, deletePocket, getPocketDetail, index, updatePocket } from "../controllers/pocketController";
+import { createPocketSchema, updatePocketSchema } from "../schemas/pocketSchemas";
+import { validationData } from "../middleware/validationMiddleware";
 
 const pocketRoutes = Router();
 
 // pocketRoutes.use(bodyParser.json());
 
 pocketRoutes.get('/', index); // GET ALL
-pocketRoutes.post('/create', createPocket); // CREATE
-pocketRoutes.post('/{id}', createPocket); // GET DETAIL
+pocketRoutes.post('/create', validationData(createPocketSchema), createPocket); // CREATE
+pocketRoutes.get('/:id', getPocketDetail); // GET DETAIL
+pocketRoutes.put('/:id/update', validationData(updatePocketSchema), updatePocket); // UPDATE POCKET
+pocketRoutes.delete('/:id/delete', deletePocket);
 
 export default pocketRoutes;

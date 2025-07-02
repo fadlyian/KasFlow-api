@@ -65,8 +65,143 @@ const createPocket = async (req: Request, res: Response) => {
         console.log('error: ', error);
         res.status(500).json({
             status: 'failed',
-            trace: error,
             message: "Terjadi kesalaha pada server",
+            data: null
+        });
+    }
+}
+
+// GET DETAIL Pocket
+const getPocketDetail = async (req: Request, res: Response) => {
+    try {
+        const pocketId = Number(req.params.id);
+        const user = req.user;
+
+        if (isNaN(pocketId)) {
+            return res.status(400).json({
+                status: 'failed',
+                message: "ID pocket tidak valid",
+            });
+        }
+
+        const pocket = await prisma.pocket.findFirst({
+            where: {
+                id: pocketId,
+                userId: Number(user?.userId)
+            },
+            select: {
+                id: true,
+                name: true,
+                balance: true,
+                type: true,
+            }
+        });
+
+        if (!pocket) {
+            return res.status(404).json({
+                status: false,
+                message: "Pocket tidak ditemukan",
+                data: null
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Detail pocket berhasil diambil",
+            data: pocket
+        });
+    } catch (error) {
+        console.log('error: ', error);
+        res.status(500).json({
+            status: 'failed',
+            message: "Terjadi kesalahan pada server",
+            data: null
+        });
+    }
+}
+
+// UPDATE pocket
+const updatePocket = async (req: Request, res: Response) => {
+    try {
+        const pocketId = Number(req.params.id);
+        const user = req.user;
+
+        const { name, type, balance } = req.body
+
+        if (isNaN(pocketId)) {
+            return res.status(400).json({
+                status: 'failed',
+                message: "ID pocket tidak valid",
+            });
+        }
+
+        const updatedPocket = await prisma.pocket.update({
+            where: {
+                id: pocketId,
+                userId: Number(user?.userId),
+            },
+            data: {
+                name,
+                type,
+                balance
+            }
+        });
+
+        // Kirim respons jika berhasil
+        res.status(200).json({
+            status: 'success',
+            message: 'Pocket berhasil diperbarui',
+            data: updatedPocket
+        });
+
+    } catch (error) {
+        console.log('error: ', error);
+        res.status(500).json({
+            status: 'failed',
+            message: "Terjadi kesalahan pada server",
+            data: null
+        });
+    }
+};
+
+const deletePocket = async (req: Request, res: Response) => {
+    try {
+        const pocketId = Number(req.params.id);
+        const user = req.user;
+
+        if (isNaN(pocketId)) {
+            return res.status(400).json({
+                status: 'failed',
+                message: "ID pocket tidak valid",
+            });
+        }
+
+        const deletedPocket = await prisma.pocket.delete({
+            where: {
+                id: pocketId,
+                userId: Number(user?.userId),
+            }
+        })
+
+        if (!deletedPocket) {
+            res.status(404).json({
+                status: 'failed',
+                message: "Pocket tidak ditemukan atau Anda tidak memiliki akses",
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Pocket berhasil dihapus',
+            data: null // Data bisa null karena item sudah dihapus
+        });
+
+    } catch (error) {
+        console.log('error: ', error);
+
+        res.status(500).json({
+            status: 'failed',
+            message: "Terjadi kesalahan pada server",
             data: null
         });
     }
@@ -75,4 +210,7 @@ const createPocket = async (req: Request, res: Response) => {
 export {
     index,
     createPocket,
+    getPocketDetail,
+    updatePocket,
+    deletePocket,
 }
