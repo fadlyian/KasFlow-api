@@ -52,7 +52,7 @@ const createPocket = async (req: Request, res: Response) => {
 
             return newPocket;
         });
-        
+
         res.status(201).json({
             status: true,
             message: "Pocket berhasil dibuat",
@@ -186,19 +186,35 @@ const deletePocket = async (req: Request, res: Response) => {
             });
         }
 
-        const deletedPocket = await prisma.pocket.delete({
-            where: {
-                id: pocketId,
-                userId: Number(user?.userId),
-            }
-        })
+        // const deletedPocket = await prisma.pocket.delete({
+        //     where: {
+        //         id: pocketId,
+        //         userId: Number(user?.userId),
+        //     }
+        // })
 
-        if (!deletedPocket) {
-            res.status(404).json({
-                status: 'failed',
-                message: "Pocket tidak ditemukan atau Anda tidak memiliki akses",
+        const result = await prisma.$transaction(async (tx) => {
+
+            const existingPocket = await tx.pocket.findFirst({
+                where:{
+                    id: pocketId,
+                    userId: Number(user?.userId)
+                }
             });
-        }
+
+            if(!existingPocket) {
+                throw new Error('POCKET_NOT_FOUND');
+            }
+            
+            await tx.pocket.delete({
+                where: {
+                    id: pocketId,
+                    userId: Number(user?.userId)
+                }
+            });
+
+            return existingPocket;
+        });
 
         res.status(200).json({
             status: 'success',
@@ -206,8 +222,15 @@ const deletePocket = async (req: Request, res: Response) => {
             data: null // Data bisa null karena item sudah dihapus
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.log('error: ', error);
+
+        if(error.message === 'POCKET_NOT_FOUND') {
+            res.status(404).json({
+                status: 'failed',
+                message: "Pocket tidak ditemukan atau Anda tidak memiliki akses",
+            });
+        }
 
         res.status(500).json({
             status: 'failed',
