@@ -34,35 +34,45 @@ const createPocket = async (req: Request, res: Response) => {
         const { name, type, balance } = req.body
         const user = req.user;
 
-        const existingPocket = await prisma.pocket.findFirst({ where: { name: name } });
+        const newPocket = await prisma.$transaction(async (tx) => {
+            const existingPocket = await tx.pocket.findFirst({ where: { name: name } });
 
-        if (existingPocket) {
-            res.status(400).json({
-                status: false,
-                message: "Nama pocket sudah digunakan",
-                data: null
-            });
-        }
-
-        await prisma.pocket.create({
-            data: {
-                userId: Number(user?.userId),
-                name: name,
-                type: type,
-                balance: balance
+            if (existingPocket) {
+                throw new Error('POCKET_EXISTS');
             }
-        })
+
+            const newPocket = await tx.pocket.create({
+                data: {
+                    userId: Number(user?.userId),
+                    name: name,
+                    type: type,
+                    balance: balance
+                }
+            });
+
+            return newPocket;
+        });
+        
         res.status(201).json({
             status: true,
             message: "Pocket berhasil dibuat",
             data: {
+                id: newPocket?.id,
                 name,
                 type,
                 balance,
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.log('error: ', error);
+        if (error.message === 'POCKET_EXISTS') {
+            return res.status(400).json({
+              status: false,
+              message: "Nama pocket sudah digunakan",
+              data: null
+            });
+          }
+      
         res.status(500).json({
             status: 'failed',
             message: "Terjadi kesalaha pada server",
