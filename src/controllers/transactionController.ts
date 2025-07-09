@@ -104,31 +104,61 @@ const create = async (req: Request, res: Response) => {
     }
 }
 
-const getDetail = async (req: Request, res: Response) => {
+const updateTransaction = async (req: Request, res: Response) => {
     const user = req.user;
     const transactionId = req.params.transactionId;
+    const pocketId = req.params.pocketId;
+    const { amount, description, type, categoryId } = req.body;
 
-    const transaction = await prisma.transaction.findUnique({
-        where: {
-            id: Number(transactionId),
-            userId: Number(user?.userId),
-        },
-    });
-
-    if (!transaction) {
-        res.status(404).json({
-            status: "failed",
-            message: "Transaksi tidak ditemukan atau bukan milik user",
-            data: null
+    const updateTransaction = await prisma.$transaction(async (tx) => {
+        const pocket = await tx.pocket.findUnique({
+            where: {
+                id: Number(pocketId),
+                userId: Number(user?.userId),
+            } 
         });
-    }
+
+        if (!pocket) {
+            res.status(404).json({
+                status: "failed",
+                message: "Pocket tidak ditemukan atau bukan milik user",
+                data: null
+            });
+        }
+        const transaction = await tx.transaction.update({
+            where: {
+                id: Number(transactionId),
+                userId: Number(user?.userId),
+            },
+            data: {
+                amount: Number(amount),
+                description: description,
+                type: type,
+                categoryId: Number(categoryId),
+            },
+        });
+
+        const newBalance = calculateBalance(
+            Number(pocket?.balance),
+            Number(transaction?.amount),
+            type as TransactionType
+        );
+
+        await tx.pocket.update({
+            where: { id: Number(pocketId) },
+            data: { balance: newBalance }
+        });
+
+        return transaction;
+    });
 
     res.status(200).json({
         status: "success",
-        message: "Transaksi berhasil diambil",
-        data: transaction
+        message: "Transaksi berhasil diubah",
+        data: updateTransaction
     });
 }
+
 
 const deleteTransaction = async (req: Request, res: Response) =>{
     const user = req.user;
@@ -179,4 +209,4 @@ const deleteTransaction = async (req: Request, res: Response) =>{
     });
 }
 
-export { index, create, getDetail, deleteTransaction };
+export { index, create, updateTransaction, deleteTransaction };

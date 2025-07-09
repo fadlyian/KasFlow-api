@@ -14,6 +14,8 @@ pocketRoutes.get('/:id', getPocketDetail); // GET DETAIL
 pocketRoutes.put('/:id/update', validationData(updatePocketSchema), updatePocket); // UPDATE POCKET
 pocketRoutes.delete('/:id/delete', deletePocket);
 
+// transaction Route
+// pocketRoutes.use('/:pocketId/transaction/', transactionRoute);
 pocketRoutes.use('/transaction/', transactionRoute);
 
 export default pocketRoutes;
