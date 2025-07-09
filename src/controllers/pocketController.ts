@@ -66,7 +66,7 @@ const createPocket = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.log('error: ', error);
         if (error.message === 'POCKET_EXISTS') {
-            return res.status(400).json({
+            res.status(400).json({
               status: false,
               message: "Nama pocket sudah digunakan",
               data: null
@@ -88,7 +88,7 @@ const getPocketDetail = async (req: Request, res: Response) => {
         const user = req.user;
 
         if (isNaN(pocketId)) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'failed',
                 message: "ID pocket tidak valid",
             });
@@ -108,7 +108,7 @@ const getPocketDetail = async (req: Request, res: Response) => {
         });
 
         if (!pocket) {
-            return res.status(404).json({
+            res.status(404).json({
                 status: false,
                 message: "Pocket tidak ditemukan",
                 data: null
@@ -139,7 +139,7 @@ const updatePocket = async (req: Request, res: Response) => {
         const { name, type, balance } = req.body
 
         if (isNaN(pocketId)) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'failed',
                 message: "ID pocket tidak valid",
             });
@@ -180,7 +180,7 @@ const deletePocket = async (req: Request, res: Response) => {
         const user = req.user;
 
         if (isNaN(pocketId)) {
-            return res.status(400).json({
+            res.status(400).json({
                 status: 'failed',
                 message: "ID pocket tidak valid",
             });
