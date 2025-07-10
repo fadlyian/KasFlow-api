@@ -61,7 +61,7 @@ model Transaction {
   pocketId    Int
   userId      Int
   categoryId  Int? // Foreign Key ke Category (opsional)
-  amount      Decimal
+  amount      Decimal         @db.Decimal(15, 2)
   type        TransactionType
   description String? // Deskripsi bersifat opsional
   date        DateTime // Tanggal transaksi terjadi
