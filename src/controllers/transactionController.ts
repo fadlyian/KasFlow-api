@@ -118,6 +118,13 @@ const updateTransaction = async (req: Request, res: Response) => {
             } 
         });
 
+        const oldTransaction = await tx.transaction.findUnique({
+            where: {
+                id: Number(transactionId),
+                userId: Number(user?.userId),
+            },
+        });
+
         if (!pocket) {
             res.status(404).json({
                 status: "failed",
@@ -125,6 +132,19 @@ const updateTransaction = async (req: Request, res: Response) => {
                 data: null
             });
         }
+
+        const oldBalance = calculateBalance(
+            Number(pocket?.balance),
+            Number(oldTransaction?.amount),
+            oldTransaction?.type === "EXPENSE" ? "INCOME" : "EXPENSE"
+        )
+
+        const newBalance = calculateBalance(
+            Number(oldBalance),
+            Number(amount),
+            oldTransaction?.type as TransactionType
+        )
+        
         const transaction = await tx.transaction.update({
             where: {
                 id: Number(transactionId),
@@ -136,13 +156,7 @@ const updateTransaction = async (req: Request, res: Response) => {
                 type: type,
                 categoryId: Number(categoryId),
             },
-        });
-
-        const newBalance = calculateBalance(
-            Number(pocket?.balance),
-            Number(transaction?.amount),
-            type as TransactionType
-        );
+        });      
 
         await tx.pocket.update({
             where: { id: Number(pocketId) },
