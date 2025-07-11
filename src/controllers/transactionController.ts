@@ -110,10 +110,15 @@ const create = async (req: Request, res: Response) => {
             return transaction;
         });
 
+        const formattedTransaction = {
+            ...transaction,
+            date: formatDate(transaction.date)
+        };
+
         res.status(200).json({
             status: "success",
             message: "Transaksi berhasil dibuat",
-            data: transaction
+            data: formattedTransaction
         });
 
     } catch (error) {
