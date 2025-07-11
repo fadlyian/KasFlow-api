@@ -32,6 +32,9 @@ const index = async (req: Request, res: Response) => {
                 userId: Number(user?.userId),
                 pocketId: Number(pocketId),
             },
+            orderBy: {
+                id: 'desc'
+            }
         });
 
         const formattedTransactions = transactions.map(transaction => ({
