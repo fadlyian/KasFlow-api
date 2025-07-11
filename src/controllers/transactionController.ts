@@ -201,48 +201,77 @@ const deleteTransaction = async (req: Request, res: Response) =>{
     const transactionId = req.params.transactionId;
     const pocketId = req.params.pocketId;
 
-    const pocket = await prisma.pocket.findUnique({
-        where: {
-            id: Number(pocketId),
-            userId: Number(user?.userId),
-        },
-    });
-
-    if (!pocket) {
-        res.status(404).json({
-            status: "failed",
-            message: "Pocket tidak ditemukan atau bukan milik user",
-            data: null
-        });
-    }
-
-    const deletedTransaction = await prisma.$transaction(async (tx) => {
-        const transaction = await tx.transaction.delete({
+    try{
+        const pocket = await prisma.pocket.findUnique({
             where: {
-                id: Number(transactionId),
+                id: Number(pocketId),
                 userId: Number(user?.userId),
             },
         });
 
-        const newBalance = calculateBalance(
-            Number(pocket?.balance),
-            Number(transaction?.amount),
-            transaction?.type === "EXPENSE" ? "INCOME" : "EXPENSE" as TransactionType
-        );
+        if (!pocket) {
+            res.status(404).json({
+                status: "failed",
+                message: "Pocket tidak ditemukan atau bukan milik user",
+                data: null
+            });
+        }
 
-        await tx.pocket.update({
-                where: { id: Number(transaction?.pocketId) },
-                data: { balance: newBalance }
+        const transaction = await prisma.transaction.findFirst({
+            where: {
+                id: Number(transactionId),
+                userId: Number(user?.userId),
+            },
+        })
+
+        if(!transaction){
+            throw new Error(`CANT_FIND_TRANSACTION`);
+        }
+
+        const deletedTransaction = await prisma.$transaction(async (tx) => {
+
+            const transaction = await tx.transaction.delete({
+                where: {
+                    id: Number(transactionId),
+                    userId: Number(user?.userId),
+                },
             });
 
-        return transaction;
-    });
+            const newBalance = calculateBalance(
+                Number(pocket?.balance),
+                Number(transaction?.amount),
+                transaction?.type === "EXPENSE" ? "INCOME" : "EXPENSE" as TransactionType
+            );
 
-    res.status(200).json({
-        status: "success",
-        message: "Transaksi berhasil dihapus",
-        data: deletedTransaction
-    });
+            await tx.pocket.update({
+                    where: { id: Number(transaction?.pocketId) },
+                    data: { balance: newBalance }
+                });
+
+            return transaction;
+        });
+
+        res.status(200).json({
+            status: "success",
+            message: "Transaksi berhasil dihapus",
+            data: deletedTransaction
+        });
+    }catch(error:any){
+        console.log('error: ', error);
+        if(error.message === `CANT_FIND_TRANSACTION`){
+            res.status(400).json({
+                status: "failed",
+                message: "Tidak bisa menemukan Transaksi",
+                data: null
+            });
+        }
+        res.status(500).json({
+            status: "failed",
+            message: "Terjadi kesalahan pada server",
+            data: null
+        });
+    }
+
 }
 
 export { index, create, updateTransaction, deleteTransaction };
