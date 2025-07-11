@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { calculateBalance } from "../utils/pocketUtils";
 import { TransactionType } from "../types/TransactionType";
+import formatDate from "../utils/formatDate";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,22 @@ const index = async (req: Request, res: Response) => {
     const pocketId = req.params.pocketId;
 
     try {
+         // Validasi apakah pocket milik user
+        const pocket = await prisma.pocket.findUnique({
+            where: {
+                id: Number(pocketId),
+                userId: Number(user?.userId),
+            },
+        });
+
+        if (!pocket) {
+            res.status(404).json({
+                status: "failed",
+                message: "Pocket tidak ditemukan atau bukan milik user",
+                data: null
+            });
+        }
+
         const transactions = await prisma.transaction.findMany({
             where: {
                 userId: Number(user?.userId),
@@ -17,10 +34,15 @@ const index = async (req: Request, res: Response) => {
             },
         });
 
+        const formattedTransactions = transactions.map(transaction => ({
+            ...transaction,
+            date: formatDate(transaction.date)
+        }))            
+
         res.status(200).json({
             status: "success",
             message: "Transaksi berhasil diambil",
-            data: transactions
+            data: transactions.length > 0 ? formattedTransactions : []
         });
     } catch (error) {
         console.log('error: ', error);
