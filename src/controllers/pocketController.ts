@@ -8,7 +8,8 @@ const index = async (req: Request, res: Response) => {
     const user = req.user;
     const pockets = await prisma.pocket.findMany({
         where: {
-            userId: Number(user?.userId)
+            userId: Number(user?.userId),
+            deleted_at: null // Hanya ambil pocket yang belum di-soft delete
         },
         select: {
             id: true,
@@ -35,7 +36,13 @@ const createPocket = async (req: Request, res: Response) => {
         const user = req.user;
 
         const newPocket = await prisma.$transaction(async (tx) => {
-            const existingPocket = await tx.pocket.findFirst({ where: { name: name } });
+            const existingPocket = await tx.pocket.findFirst({ 
+                where: { 
+                    name: name,
+                    userId: Number(user?.userId),
+                    deleted_at: null // Hanya cek pocket yang belum di-soft delete
+                } 
+            });
 
             if (existingPocket) {
                 throw new Error('POCKET_EXISTS');
@@ -97,7 +104,8 @@ const getPocketDetail = async (req: Request, res: Response) => {
         const pocket = await prisma.pocket.findFirst({
             where: {
                 id: pocketId,
-                userId: Number(user?.userId)
+                userId: Number(user?.userId),
+                deleted_at: null // Hanya ambil pocket yang belum di-soft delete
             },
             select: {
                 id: true,
@@ -149,6 +157,7 @@ const updatePocket = async (req: Request, res: Response) => {
             where: {
                 id: pocketId,
                 userId: Number(user?.userId),
+                deleted_at: null // Hanya update pocket yang belum di-soft delete
             },
             data: {
                 name,
@@ -194,26 +203,30 @@ const deletePocket = async (req: Request, res: Response) => {
         // })
 
         const result = await prisma.$transaction(async (tx) => {
-
             const existingPocket = await tx.pocket.findFirst({
-                where:{
+                where: {
                     id: pocketId,
-                    userId: Number(user?.userId)
+                    userId: Number(user?.userId),
+                    deleted_at: null // Hanya ambil pocket yang belum di-soft delete
                 }
             });
 
-            if(!existingPocket) {
+            if (!existingPocket) {
                 throw new Error('POCKET_NOT_FOUND');
             }
             
-            await tx.pocket.delete({
+            // Soft delete: update deleted_at dengan timestamp saat ini
+            const softDeletedPocket = await tx.pocket.update({
                 where: {
                     id: pocketId,
                     userId: Number(user?.userId)
+                },
+                data: {
+                    deleted_at: new Date()
                 }
             });
 
-            return existingPocket;
+            return softDeletedPocket;
         });
 
         res.status(200).json({
