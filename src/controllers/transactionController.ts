@@ -25,6 +25,7 @@ const index = async (req: Request, res: Response) => {
                 message: "Pocket tidak ditemukan atau bukan milik user",
                 data: null
             });
+            return;
         }
 
         const transactions = await prisma.transaction.findMany({
@@ -76,6 +77,7 @@ const create = async (req: Request, res: Response) => {
                 message: "Pocket tidak ditemukan atau bukan milik user",
                 data: null
             });
+            return;
         }
 
         if (type === "EXPENSE" && Number(amount) > Number(pocket?.balance)) {
@@ -84,6 +86,7 @@ const create = async (req: Request, res: Response) => {
                 message: "Saldo tidak cukup",
                 data: null
             });
+            return;
         }
 
         const newBalance = calculateBalance(
@@ -161,6 +164,7 @@ const updateTransaction = async (req: Request, res: Response) => {
                 message: "Pocket tidak ditemukan atau bukan milik user",
                 data: null
             });
+            return;
         }
 
         const oldBalance = calculateBalance(
@@ -223,6 +227,7 @@ const deleteTransaction = async (req: Request, res: Response) =>{
                 message: "Pocket tidak ditemukan atau bukan milik user",
                 data: null
             });
+            return;
         }
 
         const transaction = await prisma.transaction.findFirst({
