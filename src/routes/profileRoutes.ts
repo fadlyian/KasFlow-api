@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { profile } from "../controllers/profileController";
+import { profile, updateProfile } from "../controllers/profileController";
 
-const profileRoute = Router();
+const profileRoutes = Router();
 
-profileRoute.get('/profile', profile);
+profileRoutes.get('/', profile);
+profileRoutes.put('/update', updateProfile);
 
 export {
-    profileRoute
+    profileRoutes
 }
